@@ -1,0 +1,38 @@
+version: 2.1
+
+jobs:
+  build-test-and-publish:
+    docker:
+      - image: cimg/openjdk:21.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - maven-v1-{{ checksum "pom.xml" }}
+            - maven-v1-
+      - run:
+          name: Test and package
+          command: mvn -B clean verify
+      - save_cache:
+          key: maven-v1-{{ checksum "pom.xml" }}
+          paths:
+            - ~/.m2
+      - setup_remote_docker
+      - run:
+          name: Build container image
+          command: docker build -t "$DOCKERHUB_USERNAME/devops-demo:$CIRCLE_SHA1" -t "$DOCKERHUB_USERNAME/devops-demo:latest" .
+      - when:
+          condition:
+            equal: [ main, << pipeline.git.branch >> ]
+          steps:
+            - run:
+                name: Publish image from main
+                command: |
+                  echo "$DOCKERHUB_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+                  docker push "$DOCKERHUB_USERNAME/devops-demo:$CIRCLE_SHA1"
+                  docker push "$DOCKERHUB_USERNAME/devops-demo:latest"
+
+workflows:
+  build-test-and-publish:
+    jobs:
+      - build-test-and-publish
