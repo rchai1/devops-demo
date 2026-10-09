@@ -1,0 +1,7 @@
+target
+.git
+.github
+.circleci
+.idea
+.vscode
+*.log
