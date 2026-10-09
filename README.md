@@ -1,5 +1,7 @@
 # SCTP Module 4 — DevOps Demo
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/rchai1/devops-demo/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/rchai1/devops-demo/tree/main)
+
 Spring Boot demo project for Lessons 4.4–4.7 using Java 21, Maven, Docker, PostgreSQL, GitHub Flow, and CircleCI.
 
 ## Run locally
