@@ -1,6 +1,36 @@
 version: 2.1
 
+orbs:
+  snyk: snyk/snyk@2.3.0
+
 jobs:
+  # SNYK_SCAN - Snyk Open Source (SCA): scan Maven dependencies in pom.xml
+  snyk_scan:
+    docker:
+      - image: cimg/openjdk:21.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - maven-v1-{{ checksum "pom.xml" }}
+            - maven-v1-
+      - snyk/scan:
+          severity-threshold: high
+          cli-version: 1.1308.1
+          monitor-on-build: false
+
+  # SNYK_CODE - Snyk Code (SAST): static analysis of src/
+  snyk_code:
+    docker:
+      - image: cimg/openjdk:21.0
+    steps:
+      - checkout
+      - snyk/scan:
+          command: code test
+          severity-threshold: high
+          cli-version: 1.1308.1
+          monitor-on-build: false
+
   build-test-and-publish:
     docker:
       - image: cimg/openjdk:21.0
@@ -43,7 +73,12 @@ jobs:
 workflows:
   build-test-and-publish:
     jobs:
-      - build-test-and-publish
+      - snyk_scan
+      - snyk_code
+      - build-test-and-publish:
+          requires:
+            - snyk_scan
+            - snyk_code
       - deploy:
           requires:
             - build-test-and-publish
