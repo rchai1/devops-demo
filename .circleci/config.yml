@@ -5,7 +5,7 @@ orbs:
 
 jobs:
   # SNYK_SCAN - Snyk Open Source (SCA): scan Maven dependencies in pom.xml
-  snyk_scan:
+   snyk_scan:
     docker:
       - image: cimg/openjdk:21.0
     steps:
@@ -14,11 +14,14 @@ jobs:
           keys:
             - maven-v1-{{ checksum "pom.xml" }}
             - maven-v1-
+      - run:
+          name: Resolve Maven dependencies
+          command: mvn -B dependency:tree
       - snyk/scan:
           severity-threshold: high
           cli-version: 1.1308.1
           monitor-on-build: false
-
+          args: -d
   # SNYK_CODE - Snyk Code (SAST): static analysis of src/
   snyk_code:
     docker:
