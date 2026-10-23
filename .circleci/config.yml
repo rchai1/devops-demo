@@ -23,7 +23,7 @@ jobs:
           command: docker build -t "$DOCKERHUB_USERNAME/devops-demo:$CIRCLE_SHA1" -t "$DOCKERHUB_USERNAME/devops-demo:latest" .
       - when:
           condition:
-            equal: [ main, << pipeline.git.branch >> ]
+            equal: [main, << pipeline.git.branch >>]
           steps:
             - run:
                 name: Publish image from main
@@ -32,7 +32,21 @@ jobs:
                   docker push "$DOCKERHUB_USERNAME/devops-demo:$CIRCLE_SHA1"
                   docker push "$DOCKERHUB_USERNAME/devops-demo:latest"
 
+  deploy:
+    docker:
+      - image: cimg/node:lts
+    steps:
+      - run:
+          name: Redeploy latest image on Railway
+          command: npx --yes @railway/cli redeploy --service "$RAILWAY_SERVICE_ID" --yes
+
 workflows:
   build-test-and-publish:
     jobs:
       - build-test-and-publish
+      - deploy:
+          requires:
+            - build-test-and-publish
+          filters:
+            branches:
+              only: main
